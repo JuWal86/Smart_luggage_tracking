@@ -1,0 +1,71 @@
+version: "3"
+
+services:
+  influxdb:
+    restart: always
+    image: influxdb:2.1.1
+    container_name: IOT_Project_influxdb
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb2:rw
+    env_file:
+      - .env
+    entrypoint: ["./entrypoint.sh"]
+    ports:
+      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+
+  telegraf:
+    restart: always
+    image: telegraf:1.19
+    container_name: IOT_Project_telegraf
+    volumes:
+      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+    env_file:
+      - .env
+    depends_on:
+      - influxdb
+
+  grafana:
+    restart: always 
+    image: grafana/grafana-oss:8.4.3
+    container_name: IOT_Project_grafana
+    volumes:
+      - ./grafana_data:/var/lib/grafana:rw
+    depends_on:
+      - influxdb
+    ports:
+      - ${GRAFANA_PORT}:3000
+    
+  mosquitto-container:
+    restart: always
+    container_name: IOT_Project_mosquitto
+    image: eclipse-mosquitto
+    volumes:
+      - ${MOSQUITTO_CFG_PATH}:/mosquitto/config/mosquitto.conf:ro
+    env_file:
+      - .env
+    ports:
+      - 1883:1883
+
+  nodered: 
+    restart: always
+    container_name: IOT_Project_nodered
+    image: nodered/node-red
+    depends_on: 
+      - mosquitto-container
+    ports: 
+      - 1880:1880
+    volumes: 
+      - ./nodered_data/data/:/data
+  
+  luggage-simulator:
+    restart: always
+    build: ./scripts
+    container_name: IOT_Project_luggage_simulator
+    depends_on:
+      - mosquitto-container
+    environment:
+      MQTT_BROKER: "mosquitto-container"
+
+volumes:
+  grafana_data:
+  influxdb_data:
