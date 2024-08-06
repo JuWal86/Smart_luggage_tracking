@@ -7,7 +7,7 @@ This repository contains a luggage tracking system that simulates the movement o
 1. **Clone the Repository**
 
     ```sh
-    git clone https://github.com/yourusername/Smart_luggage_tracking.git
+    git clone https://github.com/JuWal86/Smart_luggage_tracking.git
     ```
 
 2. **Unzip the Data Directories**
